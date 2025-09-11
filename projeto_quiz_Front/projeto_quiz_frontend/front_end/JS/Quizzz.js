@@ -8,54 +8,98 @@ const contador = document.querySelector("#contador");
 const acertosSpan = document.querySelector("#acertos");
 const reiniciar = document.querySelector("#reiniciar");
 
-let respostaCorreta = "";
 let acertos = 0;
 let contadorQuestoes = 0;
 const limiteQuestoes = 10;
+let questoesAnteriores = []; // guarda os IDs das questões já usadas
+let questaoAtualGlobal = null; // guarda a questão atual exibida
+let idUser = localStorage.getItem("id_user") || 0;
+let respostasUsuario = []; // armazena todas as respostas até o final
+
+// Função para não repetir questões
+function naoRepetirQuestoes(questaoAtual, questoesAnteriores) {
+  return !questoesAnteriores.includes(questaoAtual.id_quest);
+}
 
 // Função para carregar a próxima questão
 async function loadQuestion() {
   if (contadorQuestoes >= limiteQuestoes) {
-    proxima.disabled = true;
-    proxima.style.display = "none";
-    opcoes.style.display = "none";
-    contador.style.display = "none";
-    questao.style.display = "none";
+    try {
+      const resposta = await fetch("http://localhost:3000/perguntas/correcao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_user: idUser,
+          respostas: respostasUsuario,
+        }),
+      });
 
-    const comemorar = document.createElement("img");
-    comemorar.src = "../../imagens/comemoracao.gif"; // Verifique o caminho correto
-    comemorar.alt = "Imagem de comemoração"; // Adicione um atributo alt por acessibilidade
-    comemorar.style.display = "block"; // Certifique-se de que a imagem seja exibida
-    comemorar.style.margin = "0 auto"; // Centraliza a imagem
-    comemorar.style.width = "300px"; // Ajuste o tamanho conforme necessário
-    comemorar.style.height = "auto"; // Mantém a proporção da imagem
-    mensagem.innerHTML = `<div style="text-align: center;"><strong>Quiz finalizado! Você acertou ${acertos} de ${limiteQuestoes} questões.</strong></div>`;
-    mensagem.appendChild(comemorar);
-    // Adicione ao body (ou elemento específico)
-    reiniciar.disabled = false;
-    reiniciar.style.display = "block"; // Certifique-se de que a imagem seja exibida
-    return;
+      const resultado = await resposta.json();
+
+      proxima.disabled = true;
+      proxima.style.display = "none";
+      opcoes.style.display = "none";
+      contador.style.display = "none";
+      questao.style.display = "none";
+
+      const comemorar = document.createElement("img");
+      comemorar.src = "../../imagens/comemoracao.gif";
+      comemorar.alt = "Imagem de comemoração";
+      comemorar.style.display = "block";
+      comemorar.style.margin = "0 auto";
+      comemorar.style.width = "300px";
+      comemorar.style.height = "auto";
+
+      mensagem.innerHTML = `
+        <div style="text-align: center;">
+          <strong>Quiz finalizado! Você acertou ${resultado.acertosTentativa} de ${limiteQuestoes}.</strong>
+        </div>
+      `;
+      mensagem.appendChild(comemorar);
+      console.log(resultado);
+
+      reiniciar.disabled = false;
+      reiniciar.style.display = "block";
+      return;
+    } catch (error) {
+      console.error("Erro ao enviar respostas finais:", error);
+      mensagem.innerHTML =
+        "<p style='color:red;'>Erro ao enviar respostas para o servidor.</p>";
+      return;
+    }
   }
 
   try {
-    reiniciar.style.display = "none"; // Certifique-se de que a imagem seja exibida
-    const resposta = await fetch("http://localhost:3000/perguntas", {});
+    reiniciar.style.display = "none";
+    const resposta = await fetch("http://localhost:3000/perguntas");
     const questaoAtual = await resposta.json();
-    console.log(questaoAtual);
-    const questoes = questaoAtual[0];
-    questao.innerText = questoes.enunciado;
-    respostaCorreta = questoes.correta;
 
+    // escolher uma questão aleatória que ainda não foi usada
+    let questoesValidas = questaoAtual.filter((q) =>
+      naoRepetirQuestoes(q, questoesAnteriores)
+    );
+
+    // escolhe uma questão aleatória dentre as válidas
+    const questoes =
+      questoesValidas[Math.floor(Math.random() * questoesValidas.length)];
+
+    // salvar a questão atual globalmente
+    questaoAtualGlobal = questoes;
+
+    // salvar o ID da questão já usada
+    questoesAnteriores.push(questoes.id_quest);
+
+    questao.innerText = questoes.enunciado;
     contadorQuestoes++;
     contador.innerText = `Questão ${contadorQuestoes} de ${limiteQuestoes}`;
 
     opcoes.innerHTML = `
-            <label><input type="radio" name="resposta" value="alternativa_a"> A) ${questoes.alternativa_a}</label><br>
-            <label><input type="radio" name="resposta" value="alternativa_b"> B) ${questoes.alternativa_b}</label><br>
-            <label><input type="radio" name="resposta" value="alternativa_c"> C) ${questoes.alternativa_c}</label><br>
-            <label><input type="radio" name="resposta" value="alternativa_d"> D) ${questoes.alternativa_d}</label><br>
-            <label><input type="radio" name="resposta" value="alternativa_e"> E) ${questoes.alternativa_e}</label><br>
-        `;
+      <label><input type="radio" name="resposta" value="alt_a">A) ${questoes.alt_a}</label><br>
+      <label><input type="radio" name="resposta" value="alt_b">B) ${questoes.alt_b}</label><br>
+      <label><input type="radio" name="resposta" value="alt_c">C) ${questoes.alt_c}</label><br>
+      <label><input type="radio" name="resposta" value="alt_d">D) ${questoes.alt_d}</label><br>
+      <label><input type="radio" name="resposta" value="alt_e">E) ${questoes.alt_e}</label><br>
+    `;
 
     mensagem.innerHTML = "";
   } catch (error) {
@@ -64,30 +108,34 @@ async function loadQuestion() {
   }
 }
 
-// Função para verificar a resposta selecionada
+// Função para verificar a resposta selecionada e armazenar no array
 function verificarResposta() {
   const opcoesMarcadas = document.querySelector(
     'input[name="resposta"]:checked'
   );
 
   if (!opcoesMarcadas) {
-    mensagem.innerHTML = `<span style="color: red;">Selecione uma opção antes de continuar.</span>`;
+    mensagem.innerHTML =
+      '<span style="color: red;">Selecione uma opção antes de continuar.</span>';
     return false;
   }
 
-  const respostaSelecionada = opcoesMarcadas.value;
+  const respostaSelecionada = opcoesMarcadas.value.split("_")[1]; // extrai apenas a letra da resposta
+  console.log(respostaSelecionada);
 
-  if (respostaSelecionada === respostaCorreta) {
-    acertos++;
-  }
+  // Armazena no array de respostas do usuário
+  respostasUsuario.push({
+    id_quest: questaoAtualGlobal.id_quest,
+    resposta: respostaSelecionada,
+  });
+
   return true;
 }
 
 // Botão de próxima questão
-proxima.addEventListener("click", (event) => {
+proxima.addEventListener("click", async (event) => {
   event.preventDefault();
   const Respondida = verificarResposta();
-
   if (!Respondida) {
     return;
   }
@@ -98,9 +146,10 @@ proxima.addEventListener("click", (event) => {
 reiniciar.addEventListener("click", (event) => {
   window.location.reload();
   event.preventDefault();
-  respostaCorreta = "";
   acertos = 0;
   contadorQuestoes = 0;
+  questoesAnteriores = [];
+  respostasUsuario = [];
 });
 
-//funçao para nao repetir questoes
+//voltar qe
