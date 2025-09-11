@@ -1,0 +1,304 @@
+*{
+    box-sizing: border-box;
+}
+
+/* Remove o ícone de "mostrar senha" no Chrome e Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container,
+input[type="password"]::-webkit-inner-spin-button,
+input[type="password"]::-webkit-clear-button {
+    display: none;
+    -webkit-appearance: none;
+}
+
+body{
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+      background: #f4f4f4; /* Cinza claro */
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+     color: #2a4d69; /* Azul escuro */
+    min-height: 100%;
+    margin: 10%;
+}
+
+/* Container do ícone */
+.logo-container {
+   position: absolute;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+/* Garante que fique acima de outros elementos */
+}
+
+/* Estilo do ícone */
+.logo {
+    width: 90px;       /* Define a largura do ícone */
+    height: 90px;      /* Define a altura do ícone */
+    object-fit: contain; /* Ajusta o ícone proporcionalmente */
+}
+
+.sign-up, .sign-in{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+.sign-up{
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
+}
+.sign-in{
+    width: 50%;
+    z-index: 2;
+}
+form{
+    background:#f7f7f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    text-align: center;
+}
+h1{
+    font-weight: 14px;
+    font-weight: 100;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+    margin: 15px 0 20px;
+}
+input{
+   background: #f4f4f4;
+    background: #ffffff;
+    padding: 12px 15px;
+    margin: 8px 15px;
+    width: 75%;
+    border-radius: 5px;
+    border: 1px solid #ccc; /* Contorno suave */
+    outline: none;
+    font-size: 16px;
+} 
+
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 0 10px;
+    margin: 8px 15px;
+    width: 75%;
+    border-radius: 5px;
+    border: 1px solid #ffffff;
+}
+
+.input-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding:  10px;
+    outline: none;
+    font-size: 16px;
+    padding-left: 5px;
+    margin: 0;          /* zera margens */
+    padding-left: 5px; /* define distância do texto interno */
+
+}
+
+.input-wrapper span {
+    cursor: pointer;
+    color: #333;
+    font-size: 20px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+
+a{
+    color: #5b8c99;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 15px 0;
+}
+button{
+    color: #000000;
+    background: #81b1c7;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 55px;
+    margin: 20px;
+    border-radius: 20px;
+ border: 1px solid #81b1c7;
+    outline: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    cursor: pointer;
+}
+button:active{
+    transform: scale(0.90);
+}
+#signIn ,#signUp{
+    background-color:transparent ;
+    border:2px solid #fff;
+}
+.container.right-panel-active .sign-in{
+    transform: translateX(100%);
+}
+.container.right-panel-active .sign-up{
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+}
+.overlay-container{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+.container.right-panel-active .overlay-container{
+    transform: translateX(-100%);
+}
+.overlay{
+    position: relative;
+    color: #ffffff; /* Texto branco */
+    background: #81b1c7; /* Azul neutro */
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    background: linear-gradient(to right , #81b1c7, #5b8c99);
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+.container.right-panel-active .overlay{
+    transform: translateX(50%);
+}
+.overlay-right ,.overlay-left{
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column ;
+    padding: 0 40px ;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+.overlay-left{
+    transform: translateX(-20%);
+}
+.overlay-right{
+    right: 0;
+    transform: translateX(0);
+}
+.container.right-panel-active .overlay-left{
+    transform: translateX(0);
+}
+.container.right-panel-active .overlay-right{
+    transform: translateX(20%);
+}
+
+/* Estilos padrão (modo claro) */
+body {
+    background-color: #f5f5f5;
+    color: #001C55;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    transition: background 3s, color 0.3s;
+}
+
+
+@media (min-width: 1024px) {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .sign-up, .sign-in {
+        width: 50%;
+    }
+    .overlay-container {
+        left: 50%;
+        width: 50%;
+    }
+    form {
+        padding: 20px 60px;
+    }
+}
+
+/* Para telas entre 768px e 1023px (tablet/notebook) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .sign-up, .sign-in {
+        width: 70%;
+    }
+    .overlay-container {
+        left: 30%;
+        width: 70%;
+    }
+    form {
+        padding: 15px 40px;
+    }
+    input {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    button {
+        padding: 10px 40px;
+        font-size: 10px;
+    }
+}
+
+/* Para telas menores que 768px (mobile) */
+@media (max-width: 767px) {
+    body {
+        flex-direction: column;
+    }
+    .sign-up, .sign-in {
+        width: 100%;
+    }
+    .overlay-container {
+        left: 0;
+        width: 100%;
+    }
+    .overlay-right, .overlay-left {
+        width: 100%;
+        padding: 10px;
+    }
+    input {
+        width: 90%;
+        margin: 5px auto;
+    }
+    button {
+        padding: 10px 30px;
+        font-size: 10px;
+    }
+    h1 {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+}
