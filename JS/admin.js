@@ -12,7 +12,6 @@ botao.addEventListener("click", async function (event) {
   const alternativa_e = document.querySelector("#alternativa_e").value;
   const correta = document.querySelector("#Correta").value;
 
-  //* Verificação de campo
   if (
     !enunciado ||
     !alternativa_a ||
@@ -30,13 +29,13 @@ botao.addEventListener("click", async function (event) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      enunciado: enunciado,
+      enunciado,
       alt_a: alternativa_a,
       alt_b: alternativa_b,
       alt_c: alternativa_c,
       alt_d: alternativa_d,
       alt_e: alternativa_e,
-      correta: correta,
+      correta,
     }),
   });
 
@@ -50,7 +49,7 @@ botao.addEventListener("click", async function (event) {
   } else if (res.status === 500) {
     alert("Erro inesperado");
   } else {
-    console.error();
+    console.error("Erro ao cadastrar:", res.status);
   }
 });
 
@@ -60,7 +59,7 @@ async function loadQuestions() {
   questionList.innerHTML = "";
 
   try {
-    const response = await fetch("http://localhost:3000/perguntas/cards");
+    const response = await fetch("http://localhost:3000/perguntas");
     const questions = await response.json();
 
     questions.forEach((questoes) => {
@@ -89,11 +88,13 @@ async function addQuestionToPage(questoes) {
 
   const alternatives = document.createElement("ul");
   alternatives.classList.add("card-alternatives");
-  alternatives.innerText = `A: ${questoes.alt_a}
-B: ${questoes.alt_b}
-C: ${questoes.alt_c}
-D: ${questoes.alt_d}
-E: ${questoes.alt_e}`;
+  alternatives.innerHTML = `
+    <li>A: ${questoes.alt_a}</li>
+    <li>B: ${questoes.alt_b}</li>
+    <li>C: ${questoes.alt_c}</li>
+    <li>D: ${questoes.alt_d}</li>
+    <li>E: ${questoes.alt_e}</li>
+  `;
 
   let textoCorreto = "";
   if (questoes.correta === "alternativa_a") textoCorreto = questoes.alt_a;
@@ -102,12 +103,11 @@ E: ${questoes.alt_e}`;
   else if (questoes.correta === "alternativa_d") textoCorreto = questoes.alt_d;
   else if (questoes.correta === "alternativa_e") textoCorreto = questoes.alt_e;
   else textoCorreto = "Alternativa inválida";
-  //* Questão correta
+
   const correctAnswer = document.createElement("p");
   correctAnswer.classList.add("card-correct-answer");
   correctAnswer.innerText = `Resposta correta: ${textoCorreto}`;
 
-  //*Botao de delete
   const deleteButton = document.createElement("button");
   deleteButton.innerText = "Excluir";
   deleteButton.classList.add("delete-button");
@@ -115,9 +115,7 @@ E: ${questoes.alt_e}`;
     try {
       const response = await fetch(
         `http://localhost:3000/perguntas/${questoes.id_quest}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
       if (response.ok) {
         alert("Pergunta excluída");
@@ -130,7 +128,6 @@ E: ${questoes.alt_e}`;
     }
   });
 
-  //* Botão de editar
   const editbutton = document.createElement("button");
   editbutton.innerText = "Editar";
   editbutton.classList.add("edit-button");
@@ -152,7 +149,7 @@ E: ${questoes.alt_e}`;
 
     modal.showModal();
   });
-  //* Mostrar Cards
+
   card.append(
     questionTitle,
     hiddenIdInput,
@@ -163,6 +160,7 @@ E: ${questoes.alt_e}`;
   );
   questionList.appendChild(card);
 }
+
 //* Modal
 document
   .getElementById("salvar-edicao")
@@ -170,7 +168,7 @@ document
     const id_quest = event.target.getAttribute("data-id");
 
     const atualizado = {
-      newEnunciado: document.getElementById("edit-enunciado").value.trim(),
+      enunciado: document.getElementById("edit-enunciado").value.trim(),
       alt_a: document.getElementById("edit-a").value.trim(),
       alt_b: document.getElementById("edit-b").value.trim(),
       alt_c: document.getElementById("edit-c").value.trim(),
@@ -178,6 +176,7 @@ document
       alt_e: document.getElementById("edit-e").value.trim(),
       correta: document.getElementById("edit-correta").value,
     };
+
     try {
       const response = await fetch(
         `http://localhost:3000/perguntas/${id_quest}`,
@@ -191,14 +190,13 @@ document
         alert("Editado com sucesso!");
         loadQuestions();
       } else {
-        alert("Erro");
+        alert("Erro ao editar");
       }
     } catch (error) {
       console.log("Erro ao Editar", error);
     }
 
     document.getElementById("modal-editar").close();
-    loadQuestions();
   });
 
 document.querySelector(".close-modal").addEventListener("click", () => {
