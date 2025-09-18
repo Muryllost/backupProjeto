@@ -4,14 +4,15 @@ const botao = document.querySelector("#cadastrar");
 botao.addEventListener("click", async function (event) {
   event.preventDefault();
 
-  const enunciado = document.querySelector("#enunciado").value;
-  const alternativa_a = document.querySelector("#alternativa_a").value;
-  const alternativa_b = document.querySelector("#alternativa_b").value;
-  const alternativa_c = document.querySelector("#alternativa_c").value;
-  const alternativa_d = document.querySelector("#alternativa_d").value;
-  const alternativa_e = document.querySelector("#alternativa_e").value;
-  const correta = document.querySelector("#Correta").value;
+  const enunciado = document.querySelector("#enunciado").value.trim();
+  const alternativa_a = document.querySelector("#alternativa_a").value.trim();
+  const alternativa_b = document.querySelector("#alternativa_b").value.trim();
+  const alternativa_c = document.querySelector("#alternativa_c").value.trim();
+  const alternativa_d = document.querySelector("#alternativa_d").value.trim();
+  const alternativa_e = document.querySelector("#alternativa_e").value.trim();
+  const correta = document.querySelector("#Correta").value.trim().toLowerCase();
 
+  // Verifica se todos os campos estão preenchidos
   if (
     !enunciado ||
     !alternativa_a ||
@@ -25,33 +26,47 @@ botao.addEventListener("click", async function (event) {
     return;
   }
 
-  const res = await fetch("http://localhost:3000/perguntas", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      enunciado,
-      alt_a: alternativa_a,
-      alt_b: alternativa_b,
-      alt_c: alternativa_c,
-      alt_d: alternativa_d,
-      alt_e: alternativa_e,
-      correta,
-    }),
-  });
 
-  if (res.status === 201) {
-    alert("Questão adicionada com sucesso");
-    loadQuestions();
-    document.querySelector("form").reset();
-  } else if (res.status === 409) {
-    alert("A questão já existe");
-    loadQuestions();
-  } else if (res.status === 500) {
-    alert("Erro inesperado");
-  } else {
-    console.error("Erro ao cadastrar:", res.status);
+
+  try {
+    const res = await fetch("http://localhost:3000/perguntas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        enunciado,
+        alt_a: alternativa_a,
+        alt_b: alternativa_b,
+        alt_c: alternativa_c,
+        alt_d: alternativa_d,
+        alt_e: alternativa_e,
+        correta,
+        imagem: null,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 201) {
+      alert("Questão adicionada com sucesso");
+      await loadQuestions();
+      document.querySelector("form").reset();
+    } else if (res.status === 409) {
+      alert(data || "A questão já existe");
+      await loadQuestions();
+    } else if (res.status === 400) {
+      alert(data || "Dados incompletos");
+    } else if (res.status === 500) {
+      alert(data || "Erro inesperado");
+    } else {
+      alert("Erro desconhecido: " + res.status);
+      console.error("Erro ao cadastrar:", res.status, data);
+    }
+  } catch (error) {
+    console.error("Erro na requisição:", error);
+    alert("Erro na comunicação com o servidor");
   }
 });
+
 
 //*Carregar questões
 async function loadQuestions() {
@@ -97,11 +112,11 @@ async function addQuestionToPage(questoes) {
   `;
 
   let textoCorreto = "";
-  if (questoes.correta === "alternativa_a") textoCorreto = questoes.alt_a;
-  else if (questoes.correta === "alternativa_b") textoCorreto = questoes.alt_b;
-  else if (questoes.correta === "alternativa_c") textoCorreto = questoes.alt_c;
-  else if (questoes.correta === "alternativa_d") textoCorreto = questoes.alt_d;
-  else if (questoes.correta === "alternativa_e") textoCorreto = questoes.alt_e;
+  if (questoes.correta === "a") textoCorreto = questoes.alt_a;
+  else if (questoes.correta === "b") textoCorreto = questoes.alt_b;
+  else if (questoes.correta === "c") textoCorreto = questoes.alt_c;
+  else if (questoes.correta === "d") textoCorreto = questoes.alt_d;
+  else if (questoes.correta === "e") textoCorreto = questoes.alt_e;
   else textoCorreto = "Alternativa inválida";
 
   const correctAnswer = document.createElement("p");
@@ -162,43 +177,45 @@ async function addQuestionToPage(questoes) {
 }
 
 //* Modal
-document
-  .getElementById("salvar-edicao")
-  .addEventListener("click", async (event) => {
-    const id_quest = event.target.getAttribute("data-id");
+document.getElementById("salvar-edicao").addEventListener("click", async (event) => {
+  const id_quest = event.target.getAttribute("data-id");
 
-    const atualizado = {
-      enunciado: document.getElementById("edit-enunciado").value.trim(),
-      alt_a: document.getElementById("edit-a").value.trim(),
-      alt_b: document.getElementById("edit-b").value.trim(),
-      alt_c: document.getElementById("edit-c").value.trim(),
-      alt_d: document.getElementById("edit-d").value.trim(),
-      alt_e: document.getElementById("edit-e").value.trim(),
-      correta: document.getElementById("edit-correta").value,
-    };
+  const atualizacao = {
+    newEnunciado: document.getElementById("edit-enunciado").value.trim(),
+    alt_a: document.getElementById("edit-a").value.trim(),
+    alt_b: document.getElementById("edit-b").value.trim(),
+    alt_c: document.getElementById("edit-c").value.trim(),
+    alt_d: document.getElementById("edit-d").value.trim(),
+    alt_e: document.getElementById("edit-e").value.trim(),
+    correta: document.getElementById("edit-correta").value.trim().toLowerCase(),
+  };
 
-    try {
-      const response = await fetch(
-        `http://localhost:3000/perguntas/${id_quest}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(atualizado),
-        }
-      );
-      if (response.ok) {
-        alert("Editado com sucesso!");
-        loadQuestions();
-      } else {
-        alert("Erro ao editar");
+  console.log(atualizacao)
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/perguntas/${id_quest}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(atualizacao),
       }
-    } catch (error) {
-      console.log("Erro ao Editar", error);
+    );
+
+    if (response.status === 204) {
+      alert("Editado com sucesso!");
+      loadQuestions();
+    } else if (response.status === 409) {
+      alert("Já existe uma pergunta com esse enunciado ou valor da alternativa incorreta.");
+    } else if (response.status === 400) {
+      alert("Todos os campos são obrigatórios.");
+    } else {
+      alert("Erro ao editar.");
     }
+  } catch (error) {
+    console.log("Erro ao Editar", error);
+    alert("Erro na comunicação com o servidor.");
+  }
 
-    document.getElementById("modal-editar").close();
-  });
-
-document.querySelector(".close-modal").addEventListener("click", () => {
   document.getElementById("modal-editar").close();
 });
